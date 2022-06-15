@@ -2,7 +2,7 @@ import { ShareAltOutlined } from "@ant-design/icons";
 import { Button, Form, Input, message, Modal, Table } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import { ColumnProps } from "antd/lib/table";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { KeyedMutator } from "swr";
 import {
   ResourceBrief,
@@ -10,6 +10,7 @@ import {
   useShare,
   useShareAction,
 } from "../libs/hooks";
+import { LoadingContext } from "../libs/loading";
 import { ShareContext } from "../libs/models";
 
 const Action = (props: {
@@ -17,19 +18,23 @@ const Action = (props: {
   m: KeyedMutator<ShareBrief[] | undefined>;
 }) => {
   const { s: share, m: mutate } = props;
+  const [loading, setLoading] = useState(false);
   const { download, remove } = useShareAction();
 
+  const onClickDownload = async () => {
+    setLoading(true);
+    try {
+      await download(
+        share.uuid,
+        `for_${share.context.to}_${share.resource.meta.filename}`
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div>
-      <Button
-        type="link"
-        onClick={() => {
-          download(
-            share.uuid,
-            `for_${share.context.to}_${share.resource.meta.filename}`
-          );
-        }}
-      >
+      <Button type="link" onClick={onClickDownload} loading={loading}>
         下载
       </Button>
       {/* <Button type="link"> 复制链接</Button> */}
@@ -92,6 +97,7 @@ const Share = (props: { resource?: ResourceBrief }) => {
   const { create } = useShareAction();
   const [open, setOpen] = useState(false);
   const resource = props.resource;
+  const loading = useContext(LoadingContext);
   const onCreate = useCallback(
     async (ctx: ShareContext) => {
       if (resource) await create(ctx, resource).then(() => mutate());
@@ -154,6 +160,7 @@ const Share = (props: { resource?: ResourceBrief }) => {
           </Button>
         </div>
         <Table
+          loading={loading.loading}
           columns={columns}
           dataSource={data}
           rowKey={(e) => e.uuid}

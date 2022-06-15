@@ -5,6 +5,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useLocalStorage } from "react-use";
 import useSWR from "swr";
 import { AuthContext } from "../../pages/_app";
+import { LoadingContext } from "./loading";
 import { ResourceMeta, ShareContext } from "./models";
 
 export function useUserKey() {
@@ -12,10 +13,7 @@ export function useUserKey() {
     const [isValid, setValid] = useState(false)
     useEffect(() => {
         const valid = (key?.length ?? 0) > 0
-
-        console.log('test valid', key, valid)
         setValid(valid)
-
     }, [key])
     return { key, setKey, isValid, logout }
 }
@@ -40,13 +38,19 @@ export type ResourceBrief = {
 }
 export function useResources() {
     const cli = useAuthedClient()
+
+    const auth = useContext(AuthContext);
+    const loading = useContext(LoadingContext)
+
     const list = useCallback(() => {
         if (!cli) return
+        loading.loading_on()
         return cli.get<{
             resources: Array<ResourceBrief>
-        }>("/api/resource").then(e => e.data.resources)
-    }, [cli])
-    const { data, mutate, error } = useSWR("list-resources", list)
+        }>("/api/resource").then(e => e.data.resources).finally(() => loading.loading_off())
+    }, [cli, loading])
+
+    const { data, mutate, error } = useSWR(`list-resources-${auth.key}`, list)
     useEffect(() => {
         if (cli)
             mutate()
@@ -69,20 +73,27 @@ export type ShareBrief = {
 
 export function useShare(resource?: ResourceBrief) {
     const cli = useAuthedClient()
+    const loading = useContext(LoadingContext)
+
+    const auth = useContext(AuthContext);
     const list = useCallback(() => {
         if (!resource || !cli) return undefined
+        loading.loading_on()
         return cli.get<{
             share: Array<ShareBrief>
-        }>("/api/share", { params: { resource_uuid: resource.uuid } }).then(e => e.data.share)
-    }, [cli, resource])
+        }>("/api/share", { params: { resource_uuid: resource.uuid } })
+            .then(e => e.data.share)
+            .finally(() => loading.loading_off())
+    }, [cli, resource, loading.loading_on, loading.loading_off])
 
 
-    const { data, mutate, error } = useSWR("list-share", list)
+    const { data, mutate, error } = useSWR(`list-share-${auth.key}`, list)
 
     useEffect(() => {
         if (resource)
             mutate()
     }, [resource])
+
     useEffect(() => {
         if (error)
             console.error(error)

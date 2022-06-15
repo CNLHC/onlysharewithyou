@@ -1,7 +1,7 @@
 import { DeleteFilled, DownloadOutlined } from "@ant-design/icons";
-import { Button, Select, Upload } from "antd";
+import { Button, Select, Spin, Upload } from "antd";
 import downloadjs from "downloadjs";
-import React, { useContext, useEffect, useState } from "react";
+import React, { isValidElement, useContext, useEffect, useState } from "react";
 import Register from "../src/components/register";
 import Share from "../src/components/share";
 import Uploader from "../src/components/uploader";
@@ -10,6 +10,7 @@ import {
   useAuthedClient,
   useResources,
 } from "../src/libs/hooks";
+import { LoadingContext } from "../src/libs/loading";
 import { AuthContext } from "./_app";
 
 export default function Index() {
@@ -18,12 +19,18 @@ export default function Index() {
 
   const [cur_resource, setResource] = useState<ResourceBrief | undefined>();
   const { data: resources, mutate: muteta_resource } = useResources();
+  const loading = useContext(LoadingContext);
   useEffect(() => {
     if (!cur_resource && resources.length > 0) {
       return setResource(resources[0]);
     }
   }, [cur_resource, resources]);
 
+  useEffect(() => {
+    if (!auth.isValid) {
+      setResource(undefined);
+    }
+  }, [auth.isValid]);
   if (!auth.isValid || !cli)
     return <Register onLogin={(e) => auth.setKey(e.toString("base64"))} />;
 
@@ -45,6 +52,7 @@ export default function Index() {
               <Uploader onSuccess={() => muteta_resource()} />
             </div>
             <Select
+              loading={loading.loading}
               className="flex-1"
               value={cur_resource?.uuid}
               onChange={(uuid) =>
@@ -79,7 +87,9 @@ export default function Index() {
               下载
             </Button>
           </div>
-          <Share resource={cur_resource} />
+          <Spin spinning={loading.loading}>
+            <Share resource={cur_resource} />
+          </Spin>
         </div>
       </div>
       <div className="w-[100vw] flex justify-center m-2">

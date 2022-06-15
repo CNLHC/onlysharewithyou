@@ -18,5 +18,4 @@ export function AuthMiddleware() {
             throw err
         }
     }
-
 }
