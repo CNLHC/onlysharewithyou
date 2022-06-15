@@ -6,4 +6,4 @@ RUN yarn
 COPY . .
 RUN yarn next build
 COPY .env .
-CMD yarn start
+CMD yarn next start
