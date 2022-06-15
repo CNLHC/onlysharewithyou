@@ -39,7 +39,18 @@ const Uploader = (props: { onSuccess: () => void }) => {
     [cli, props]
   );
   return (
-    <Upload {...up} className="w-full" showUploadList={false}>
+    <Upload
+      {...up}
+      className="w-full"
+      showUploadList={false}
+      beforeUpload={(file) => {
+        const isLt20M = file.size / 1024 / 1024 < 20;
+        if (!isLt20M) {
+          message.error("文件必须小于20MiB");
+        }
+        return isLt20M;
+      }}
+    >
       <Button className="w-full" icon={<UploadOutlined />} type={"primary"}>
         上传文件
       </Button>
