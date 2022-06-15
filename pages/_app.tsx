@@ -1,7 +1,32 @@
 import type { AppProps } from "next/app";
 import "antd/dist/antd.css";
 import "./global.css";
+import React from "react";
+import { useUserKey } from "../src/libs/hooks";
+
+type UserKeyContext = {
+  logout: () => void;
+  isValid: boolean;
+  setKey: React.Dispatch<React.SetStateAction<string | undefined>>;
+  key: string | undefined;
+};
+export const AuthContext = React.createContext<UserKeyContext>(
+  {} as UserKeyContext
+);
 
 export default function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />;
+  const { logout, isValid, setKey, key } = useUserKey();
+
+  return (
+    <AuthContext.Provider
+      value={{
+        key,
+        logout,
+        isValid,
+        setKey,
+      }}
+    >
+      <Component {...pageProps} />
+    </AuthContext.Provider>
+  );
 }

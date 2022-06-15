@@ -1,7 +1,7 @@
 import Jimp from "jimp";
-import pdflib = require('pdf-lib')
+import * as pdflib from 'pdf-lib'
 
-const { PDFDocument, StandardFonts, rgb } = pdflib;
+const { PDFDocument } = pdflib;
 
 export async function generate_watermark(str: string) {
     const width = str.length * 32

@@ -32,7 +32,7 @@ const Action = (props: {
       >
         下载
       </Button>
-      <Button type="link"> 复制链接</Button>
+      {/* <Button type="link"> 复制链接</Button> */}
       <Button
         type="link"
         danger

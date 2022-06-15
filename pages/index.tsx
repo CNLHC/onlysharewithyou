@@ -1,7 +1,7 @@
 import { DeleteFilled, DownloadOutlined } from "@ant-design/icons";
 import { Button, Select, Upload } from "antd";
 import downloadjs from "downloadjs";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Register from "../src/components/register";
 import Share from "../src/components/share";
 import Uploader from "../src/components/uploader";
@@ -9,12 +9,13 @@ import {
   ResourceBrief,
   useAuthedClient,
   useResources,
-  useUserKey,
 } from "../src/libs/hooks";
+import { AuthContext } from "./_app";
 
 export default function Index() {
   const cli = useAuthedClient();
-  const { logout, isValid, setKey } = useUserKey();
+  const auth = useContext(AuthContext);
+
   const [cur_resource, setResource] = useState<ResourceBrief | undefined>();
   const { data: resources, mutate: muteta_resource } = useResources();
   useEffect(() => {
@@ -23,8 +24,8 @@ export default function Index() {
     }
   }, [cur_resource, resources]);
 
-  if (!isValid || !cli)
-    return <Register onLogin={(e) => setKey(e.toString("base64"))} />;
+  if (!auth.isValid || !cli)
+    return <Register onLogin={(e) => auth.setKey(e.toString("base64"))} />;
 
   return (
     <div>
@@ -85,7 +86,7 @@ export default function Index() {
         <Button
           type="link"
           onClick={() => {
-            logout();
+            auth.logout();
           }}
         >
           登出

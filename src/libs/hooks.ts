@@ -1,23 +1,28 @@
 import { message } from "antd";
 import Axios, { AxiosInstance } from "axios";
 import download from "downloadjs";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useLocalStorage } from "react-use";
 import useSWR from "swr";
+import { AuthContext } from "../../pages/_app";
 import { ResourceMeta, ShareContext } from "./models";
 
 export function useUserKey() {
     const [key, setKey, logout] = useLocalStorage<string>('key', ""); // specify a type argument for your type
     const [isValid, setValid] = useState(false)
     useEffect(() => {
-        setValid((key?.length ?? 0) > 0)
+        const valid = (key?.length ?? 0) > 0
+
+        console.log('test valid', key, valid)
+        setValid(valid)
+
     }, [key])
     return { key, setKey, isValid, logout }
 }
 
 export function useAuthedClient() {
     // const key: string | undefined = "ZgbguJKj6jqoyyKS5pP4nnN0vS2jY0QllXdu84xlezc=" as string | undefined
-    const { key } = useUserKey()
+    const { key } = useContext(AuthContext)
     const cli: AxiosInstance | undefined = useMemo(() => {
         if (key) return Axios.create({
             headers: {
@@ -43,9 +48,12 @@ export function useResources() {
     }, [cli])
     const { data, mutate, error } = useSWR("list-resources", list)
     useEffect(() => {
+        if (cli)
+            mutate()
+    }, [cli, mutate])
+    useEffect(() => {
         if (error)
             console.error(111, error)
-
     }, [error])
     return { list, data: data ?? [], mutate }
 
@@ -78,8 +86,8 @@ export function useShare(resource?: ResourceBrief) {
     useEffect(() => {
         if (error)
             console.error(error)
-
     }, [error])
+
 
     return { list, data, mutate }
 

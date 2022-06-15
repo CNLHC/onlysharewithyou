@@ -1,15 +1,13 @@
 import { Button, Popconfirm } from "antd";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import * as bip39 from "bip39";
 import { ReloadOutlined } from "@ant-design/icons";
 import TextArea from "antd/lib/input/TextArea";
-import { useUserKey } from "../libs/hooks";
 
 const gen_mnemonic = () => bip39.generateMnemonic(256);
 
 const Register = (props: { onLogin: (k: Buffer) => void }) => {
   const [v, setV] = useState(gen_mnemonic());
-  const { setKey } = useUserKey();
   const [isLogin, setLogin] = useState(false);
   const [isMnemonicValid, setMneonicValid] = useState(false);
 
@@ -24,6 +22,7 @@ const Register = (props: { onLogin: (k: Buffer) => void }) => {
   );
   const onLogin = async () => {
     const key = await bip39.mnemonicToSeed(v);
+    console.log(1111, v);
     props.onLogin(key);
   };
 
